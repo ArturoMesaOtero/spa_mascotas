@@ -3,6 +3,47 @@ from components.camera import camera_component
 from components.video_player import video_player
 from components.form import show_form_popup
 from utils.image_processor import ImageProcessor
+from datetime import datetime
+import mysql.connector
+from mysql.connector import Error
+import webbrowser
+
+
+def guardar_bytes_imagen(imagen, id_unica):
+    try:
+        # Convertir la imagen PIL a bytes
+        from io import BytesIO
+
+        # Crear un buffer de bytes
+        img_byte_arr = BytesIO()
+        # Guardar la imagen en el buffer en formato JPEG
+        imagen.save(img_byte_arr, format='JPEG')
+        # Obtener los bytes
+        img_byte_arr = img_byte_arr.getvalue()
+
+        conexion = mysql.connector.connect(
+            host=st.secrets["mysql"]["MYSQL_HOST"],
+            database=st.secrets["mysql"]["MYSQL_DATABASE"],
+            user=st.secrets["mysql"]["MYSQL_USER"],
+            password=st.secrets["mysql"]["MYSQL_PASSWORD"]
+        )
+
+        cursor = conexion.cursor()
+        sql = "INSERT INTO spa_historico (foto, id_unica) VALUES (%s, %s)"
+        cursor.execute(sql, (img_byte_arr, id_unica))
+        conexion.commit()
+
+        print(f"Imagen guardada con éxito. ID: {cursor.lastrowid}")
+        return True
+
+    except Error as e:
+        print(f"Error: {e}")
+        return False
+
+    finally:
+        if 'conexion' in locals() and conexion.is_connected():
+            cursor.close()
+            conexion.close()
 
 # Configuración de la página
 st.set_page_config(
@@ -75,11 +116,48 @@ with st.container():
                 video_player(analysis)  # Pasamos el diccionario completo
 
                 # Botón para mostrar el formulario
-                if st.button("📝 Guardar Análisis", key="form_button"):
-                    show_form_popup()
+                col_btn, col_time = st.columns([1, 1])
 
-# Manejo de estado para el formulario
-if 'form_submitted' in st.session_state and st.session_state.form_submitted:
-    st.success("✅ Análisis guardado exitosamente!")
-    # Reiniciar el estado
-    st.session_state.form_submitted = False
+                with col_btn:
+                    def handle_button_click():
+                        try:
+                            # Abrir Google en nueva pestaña
+                            webbrowser.open_new_tab('https://paradisefunnel.com/inicio-page')
+                            # Guardar la imagen
+                            if guardar_bytes_imagen(image, current_time):
+                                st.success("✅ Imagen guardada correctamente")
+                            else:
+                                st.error("❌ Error al guardar la imagen")
+                        except Exception as e:
+                            st.error(f"Error: {str(e)}")
+
+
+                    if st.button("📝 Guardar Análisis", key="save_button", on_click=handle_button_click):
+                        pass
+
+                with col_time:
+                    # Crear timestamp actual
+                    current_time = datetime.now().strftime("%d%H%M%S")
+
+                    # Estilo y contenido del timestamp
+                    st.markdown("""
+                        <style>
+                        .timestamp-box {
+                            background-color: #f0f2f6;
+                            padding: 10px 20px;
+                            border-radius: 5px;
+                            font-family: monospace;
+                            font-size: 1.2em;
+                            color: #0f1116;
+                            text-align: center;
+                            border: 1px solid #ddd;
+                            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+                            margin: 0.5rem 0;
+                        }
+                        </style>
+                    """, unsafe_allow_html=True)
+
+                    st.markdown(
+                        f'<div class="timestamp-box">{current_time}</div>',
+                        unsafe_allow_html=True
+                    )

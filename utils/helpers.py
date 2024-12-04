@@ -6,12 +6,12 @@ def get_valid_video_path(raza: str) -> str:
     Válida y retorna la ruta correcta del video según la raza.
     """
     if not raza:
-        return "./videos/default.mp4"
+        return "./videos/mestizo.mp4"
 
-    raza_formato = raza.lower().replace(' ', '_')
-    video_path = f"./videos/{raza_formato}.mp4"
+    #raza_formato = raza.lower().replace(' ', '_')
+    video_path = f"./videos/{raza}"
 
-    return video_path if os.path.exists(video_path) else "./videos/default.mp4"
+    return video_path if os.path.exists(video_path) else "./videos/mestizo.mp4"
 
 
 def video_exists(path: str) -> bool:
