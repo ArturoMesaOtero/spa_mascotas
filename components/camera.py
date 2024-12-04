@@ -11,15 +11,21 @@ def camera_component():
             border-radius: 10px;
             padding: 10px 20px;
             font-weight: bold;
+            transition: all 0.3s ease;
         }
         .stCamera > button:hover {
             background-color: #FF3333;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+        .loading-spinner {
+            text-align: center;
+            padding: 20px;
         }
         </style>
     """, unsafe_allow_html=True)
 
-    img_file_buffer = st.camera_input("Toma una foto", key="camera")
+    img_file_buffer = st.camera_input("📸 Toma una foto", key="camera")
     if img_file_buffer is not None:
-        img = Image.open(img_file_buffer)
-        return img
+        return Image.open(img_file_buffer)
     return None
