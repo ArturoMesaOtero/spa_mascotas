@@ -24,7 +24,7 @@ def video_player(analysis_dict):
     with st.container():
         st.markdown('<div class="video-container">', unsafe_allow_html=True)
 
-        raza = analysis_dict.get('raza_perro')
+        raza = analysis_dict.get('raza_escogida')
         video_path = get_valid_video_path(raza)
 
         if video_path == "./videos/default.mp4":
